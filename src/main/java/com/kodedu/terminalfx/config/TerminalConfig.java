@@ -13,12 +13,6 @@ import javafx.scene.paint.Color;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TerminalConfig {
 
-    @JsonProperty(value = "send-encoding")
-    private String sendEncoding = "raw";
-
-    @JsonProperty(value = "receive-encoding")
-    private String receiveEncoding = "utf-8";
-
     @JsonProperty("use-default-window-copy")
     private boolean useDefaultWindowCopy = true;
 
@@ -27,6 +21,12 @@ public class TerminalConfig {
 
     @JsonProperty("copy-on-select")
     private boolean copyOnSelect = false;
+
+    @JsonProperty("mouse-right-click-paste")
+    private boolean mouseRightClickPaste = false;
+
+    @JsonProperty("mouse-paste-button")
+    private Integer mousePasteButton = 1;
 
     @JsonProperty("ctrl-c-copy")
     private boolean ctrlCCopy = true;
@@ -70,13 +70,6 @@ public class TerminalConfig {
     @JsonIgnore
     private String unixTerminalStarter = "/bin/bash -i";
 
-    public String getSendEncoding() {
-        return sendEncoding;
-    }
-
-    public void setSendEncoding(String sendEncoding) {
-        this.sendEncoding = sendEncoding;
-    }
 
     public boolean isUseDefaultWindowCopy() {
         return useDefaultWindowCopy;
@@ -92,6 +85,39 @@ public class TerminalConfig {
 
     public void setClearSelectionAfterCopy(boolean clearSelectionAfterCopy) {
         this.clearSelectionAfterCopy = clearSelectionAfterCopy;
+    }
+
+    public boolean isMouseRightClickPaste() {
+        return mouseRightClickPaste;
+    }
+
+    public void setMouseRightClickPaste(boolean mouseRightClickPaste) {
+        this.mouseRightClickPaste = mouseRightClickPaste;
+    }
+
+    public Integer getMousePasteButton() {
+        return mousePasteButton;
+    }
+
+    /**
+     * Mouse paste button, or null to autodetect.
+     * <br><br>
+     * For autodetect, we'll use the middle mouse button for non-X11
+     * platforms (including Chrome OS). On X11, we'll use the right mouse
+     * button (since the native window manager should paste via the middle
+     * mouse button).
+     * <br><br>
+     * 0 == left (primary) button.<br>
+     * 1 == middle (auxiliary) button.<br>
+     * 2 == right (secondary) button.<br>
+     * <br><br>
+     * This option is independent of the setting for right-click paste.
+     * <br><br>
+     * Note: This will handle left & right handed mice correctly.
+     * @param mousePasteButton null, or the button number 0 to 6
+     */
+    public void setMousePasteButton(Integer mousePasteButton) {
+        this.mousePasteButton = mousePasteButton;
     }
 
     public boolean isCopyOnSelect() {
@@ -218,14 +244,6 @@ public class TerminalConfig {
         this.fontFamily = fontFamily;
     }
 
-    public String getReceiveEncoding() {
-        return receiveEncoding;
-    }
-
-    public void setReceiveEncoding(String receiveEncoding) {
-        this.receiveEncoding = receiveEncoding;
-    }
-
     public boolean isEnableClipboardNotice() {
         return enableClipboardNotice;
     }
@@ -243,6 +261,8 @@ public class TerminalConfig {
 
         if (useDefaultWindowCopy != that.useDefaultWindowCopy) return false;
         if (clearSelectionAfterCopy != that.clearSelectionAfterCopy) return false;
+        if (mouseRightClickPaste != that.mouseRightClickPaste) return false;
+        if (mousePasteButton != that.mousePasteButton) return false;
         if (copyOnSelect != that.copyOnSelect) return false;
         if (ctrlCCopy != that.ctrlCCopy) return false;
         if (ctrlVPaste != that.ctrlVPaste) return false;
@@ -251,9 +271,6 @@ public class TerminalConfig {
         if (scrollbarVisible != that.scrollbarVisible) return false;
         if (enableClipboardNotice != that.enableClipboardNotice) return false;
         if (Double.compare(that.scrollWhellMoveMultiplier, scrollWhellMoveMultiplier) != 0) return false;
-        if (sendEncoding != null ? !sendEncoding.equals(that.sendEncoding) : that.sendEncoding != null) return false;
-        if (receiveEncoding != null ? !receiveEncoding.equals(that.receiveEncoding) : that.receiveEncoding != null)
-            return false;
         if (cursorColor != null ? !cursorColor.equals(that.cursorColor) : that.cursorColor != null) return false;
         if (backgroundColor != null ? !backgroundColor.equals(that.backgroundColor) : that.backgroundColor != null)
             return false;
@@ -269,12 +286,12 @@ public class TerminalConfig {
 
     @Override
     public int hashCode() {
-        int result;
+        int result = 0;
         long temp;
-        result = sendEncoding != null ? sendEncoding.hashCode() : 0;
-        result = 31 * result + (receiveEncoding != null ? receiveEncoding.hashCode() : 0);
         result = 31 * result + (useDefaultWindowCopy ? 1 : 0);
         result = 31 * result + (clearSelectionAfterCopy ? 1 : 0);
+        result = 31 * result + (mouseRightClickPaste ? 1 : 0);
+        result = 31 * result + (mousePasteButton == null ? mousePasteButton : 7);
         result = 31 * result + (copyOnSelect ? 1 : 0);
         result = 31 * result + (ctrlCCopy ? 1 : 0);
         result = 31 * result + (ctrlVPaste ? 1 : 0);

@@ -33,15 +33,25 @@
 
     function startTerminal() {
         hterm.defaultStorage = new lib.Storage.Memory();
-        hterm.copySelectionToClipboard = function (document) {
-            app.copy(document.getSelection().toString());
+        hterm.copySelectionToClipboard = function (document, str, ismouse) {
+            if (ismouse)
+                app.setPrimarySelection(str);
+            else
+                app.copy(str);
+        };
+        hterm.pasteFromClipboard = function (document, ismouse) {
+            if (ismouse) {
+                var middledata = app.getPrimarySelection();
+                if (middledata)
+                    app.command(middledata);
+                return !!middledata;
+            } else
+                return document.execCommand('paste');
         };
         hterm.msg = function (name, args = [], string) {
             return string;
         };
         window.t = new hterm.Terminal("myterm");
-        t.getPrefs().set("send-encoding", "raw");
-        t.getPrefs().set("receive-encoding", "utf-8");
         //    t.getPrefs().set("use-default-window-copy", true);
         //    t.getPrefs().set("clear-selection-after-copy", true);
         //    t.getPrefs().set("copy-on-select", false);

@@ -1,5 +1,9 @@
 package com.kodedu.terminalfx;
 
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
 import java.io.Reader;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
@@ -8,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kodedu.terminalfx.annotation.WebkitCall;
 import com.kodedu.terminalfx.config.TerminalConfig;
 import com.kodedu.terminalfx.helper.ThreadHelper;
+import com.sun.javafx.webkit.WebConsoleListener;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -15,7 +20,6 @@ import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -30,6 +34,7 @@ public class TerminalView extends Pane {
 	private final ObjectProperty<Reader> errorReaderProperty;
 	private TerminalConfig terminalConfig = new TerminalConfig();
 	protected final CountDownLatch countDownLatch = new CountDownLatch(1);
+	private static final java.awt.datatransfer.Clipboard X11PrimarySelection = new java.awt.Button().getToolkit().getSystemSelection();
 
 	public TerminalView() {
 		webView = new WebView();
@@ -57,6 +62,9 @@ public class TerminalView extends Pane {
 		webView.prefWidthProperty().bind(widthProperty());
 
 		webEngine().load(TerminalView.class.getResource("/hterm.html").toExternalForm());
+		WebConsoleListener.setDefaultListener((view, msg, line, src)-> {
+			System.out.println(msg  + " [at " + src +":" + line + "]");
+		});
 	}
 
 	@WebkitCall(from = "hterm")
@@ -126,6 +134,25 @@ public class TerminalView extends Pane {
 		} catch(final Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	@WebkitCall(from = "hterm")
+	public String getPrimarySelection() {
+		try {
+			if (X11PrimarySelection == null)
+				return null;
+			return X11PrimarySelection.getData(DataFlavor.stringFlavor).toString();
+		} catch (UnsupportedFlavorException | IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@WebkitCall(from = "hterm")
+	public void setPrimarySelection(String text) {
+		if (X11PrimarySelection == null)
+			return;
+		X11PrimarySelection.setContents(new StringSelection(text), null);
 	}
 
 	@WebkitCall(from = "hterm")
